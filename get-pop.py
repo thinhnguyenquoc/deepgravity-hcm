@@ -59,7 +59,7 @@ def get_hcmc_population(tif_file):
             return hcmc_data, hcmc_transform, None
 
 # Get HCMC population
-hcmc_data, transform, mask = get_hcmc_population('vnm_ppp_2020.tif')
+hcmc_data, transform, mask = get_hcmc_population('./data/vnm_ppp_2020.tif')
 
 # Visualize the results
 plt.figure(figsize=(12, 10))
