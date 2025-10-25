@@ -122,5 +122,5 @@ def get_hcmc_population_with_shapefile(tif_file, shapefile_path):
 # If you have a HCMC shapefile, use this:
 hcmc_data, transform, mask, hcmc_gdf = get_hcmc_population_with_shapefile(
     './data/vnm_ppp_2020.tif', 
-    './shapefile/hochiminh.shp'
+    './shapefile/district1_hcmc.shp'
 )

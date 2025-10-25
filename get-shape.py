@@ -7,12 +7,12 @@ ox.settings.log_console = True
 ox.settings.use_cache = True
 
 # Get Ho Chi Minh City boundary
-gdf = ox.geocode_to_gdf("Ho Chi Minh City, Vietnam")
+gdf = ox.geocode_to_gdf("district 1, Ho Chi Minh City, Vietnam")
 
 # Plot the boundary
 fig, ax = plt.subplots(figsize=(10, 10))
 gdf.plot(ax=ax, facecolor='none', edgecolor='red', linewidth=2)
-ax.set_title("Ho Chi Minh City Boundary")
+ax.set_title("District 1, Ho Chi Minh City Boundary")
 # plt.tight_layout()
 # plt.show()
 
@@ -34,7 +34,7 @@ gdf = gdf.to_crs('EPSG:4759')
 gdf['area_sqkm'] = gdf.geometry.area / 10**6
 
 # Export to Shapefile
-output_dir = "./shapefile/hochiminh.shp"
+output_dir = "./shapefile/district1_hcmc.shp"
 gdf.to_file(output_dir, driver='ESRI Shapefile')
 
 print("Shapefile exported with additional attributes!")
