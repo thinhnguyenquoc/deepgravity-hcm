@@ -2,16 +2,25 @@ import osmnx as ox
 import geopandas as gpd
 import matplotlib.pyplot as plt
 from shapely.geometry import Polygon
-import numpy as np
+import json
 
-def create_osm_based_grid():
+def create_osm_based_grid(place_name):
     # Get District 1 boundary (you might need to adjust the query)
-    place_name = "District 1, Ho Chi Minh City, Vietnam"
+    # place_name = "District 1, Ho Chi Minh City, Vietnam"
     
     try:
+        # Specify the filename
+        filename = "./grid.json"
+        with open(filename, 'r') as file:
+            data = json.load(file)
+        for item in data:
+            if item["place_name"] == place_name:
+                print("have existed " + place_name)
+                return
+        grid = {'place_name': place_name, 'cells': []}
         # Get boundary geometry
         boundary = ox.geocode_to_gdf(place_name)
-        
+        print(boundary)
         # Get the bounding box
         bbox = boundary.total_bounds  # [minx, miny, maxx, maxy]
         
@@ -42,11 +51,34 @@ def create_osm_based_grid():
                         'center_lat': y_current + cell_size_deg/2,
                         'center_lon': x_current + cell_size_deg/2
                     })
+                    item = {}
+                    item["cell_id"] = cell_id
+                    item["polygon"] = [
+                        (x_current, y_current),
+                        (x_current + cell_size_deg, y_current),
+                        (x_current + cell_size_deg, y_current + cell_size_deg),
+                        (x_current, y_current + cell_size_deg)
+                    ]
+                    item['center_lat'] = y_current + cell_size_deg/2
+                    item['center_lon'] = x_current + cell_size_deg/2
+                    grid['cells'].append(item)
                     cell_id += 1
-                
+
+                    
+                    
                 y_current += cell_size_deg
             x_current += cell_size_deg
         
+        print("data", grid)
+        if len(data) == 0:
+            data = [grid]
+        else:
+            data.append(grid)
+        # Open the file in write mode ('w') and use json.dump() to write the data
+        with open(filename, 'w') as f:
+            json.dump(data, f, indent=4) # 'indent=4' for pretty-printing
+
+                
         grid_gdf = gpd.GeoDataFrame(grid_cells, crs='EPSG:4326')
         
         # Plot
@@ -67,7 +99,7 @@ def create_osm_based_grid():
                 color='darkred',
                 bbox=dict(boxstyle="circle,pad=0.2", facecolor='white', alpha=0.8, edgecolor='none')
             )
-        plt.title('0.5km Grid Over District 1, Ho Chi Minh City')
+        plt.title('0.5km Grid Over ' + place_name)
         plt.axis('off')
         plt.tight_layout()
         plt.show()
@@ -77,7 +109,7 @@ def create_osm_based_grid():
     except Exception as e:
         print(f"Error: {e}")
         print("Using fallback coordinates...")
-        return create_precise_5km_grid()
+        return 
 
 # Create OSM-based grid
-osm_grid = create_osm_based_grid()
+osm_grid = create_osm_based_grid("district 1, Ho Chi Minh City, Vietnam")
