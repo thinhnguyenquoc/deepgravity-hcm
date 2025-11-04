@@ -39,7 +39,11 @@ def read_multiple_csv_files(directory_path='./', pattern='*.csv'):
 # Usage
 combined_data = read_multiple_csv_files('data/vn', '*.csv')
 q1 = combined_data[(combined_data['gadm_name'] == 'Quận 1') & (combined_data['ds'] == '2025-10-01')]
-print(q1["home_to_ping_distance_category"], q1["distance_category_ping_fraction"])
+print("Q1:", q1["home_to_ping_distance_category"], q1["distance_category_ping_fraction"])
+q3 = combined_data[(combined_data['gadm_name'] == 'Quận 3') & (combined_data['ds'] == '2025-10-01')]
+print("Q3:", q3["home_to_ping_distance_category"], q3["distance_category_ping_fraction"])
+q5 = combined_data[(combined_data['gadm_name'] == 'Quận 5') & (combined_data['ds'] == '2025-10-01')]
+print("Q5:", q5["home_to_ping_distance_category"], q5["distance_category_ping_fraction"])
 q10 = combined_data[(combined_data['gadm_name'] == 'Quận 10') & (combined_data['ds'] == '2025-10-01')]
-print(q10["home_to_ping_distance_category"], q10["distance_category_ping_fraction"])
+print("Q10:", q10["home_to_ping_distance_category"], q10["distance_category_ping_fraction"])
 
