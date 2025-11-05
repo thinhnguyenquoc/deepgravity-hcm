@@ -21,7 +21,6 @@ def plot_district_boundary(district_name, is_save = False):
     # Add additional attributes
     gdf['city_name'] = 'Ho Chi Minh City'
     gdf['country'] = 'Vietnam'
-    gdf['area_sqkm'] = gdf.geometry.area / 10**6  # Convert to sq km
     gdf['download_date'] = datetime.datetime.now().strftime('%Y-%m-%d')
 
     # Reproject to a projected coordinate system (optional)
@@ -41,4 +40,4 @@ def plot_district_boundary(district_name, is_save = False):
 
     return gdf
 
-plot_district_boundary("District 10", is_save=True)
+plot_district_boundary("District 7", is_save=False)

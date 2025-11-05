@@ -39,31 +39,33 @@ def get_driving_distance_specific_points(point1=(10.7730, 106.6984), point2=(10.
         print(f"Error: {e}")
         return None
 
-async def grid_distance(filename):
+async def grid_distance(from_district_name, to_district_name, filename, save=False):
     try:
         # Specify the filename
         filename_grid = "./grid.json"
         data = []
         with open(filename_grid, 'r') as file:
             data = json.load(file)
-        district_1 = None
-        district_10 = None
+        district_from = None
+        district_to = None
         for item in data:
-            if item["place_name"] == "district 1, Ho Chi Minh City, Vietnam":
-                district_1 = item
-
-            if item["place_name"] == "district 10, Ho Chi Minh City, Vietnam":
-                district_10 = item
-
-        matrix_distance = []
+            if item["place_name"] == from_district_name:
+                district_from = item
+            if item["place_name"] == to_district_name:
+                district_to = item
+        
+        with open(filename, 'r') as file:
+            matrix_distance = json.load(file)
         matrix_distance_item = {}
-        matrix_distance_item["tile_from"] = district_1["place_name"] + " to " + district_10["place_name"]
+        matrix_distance_item["title"] = district_from["place_name"] + " to " + district_to["place_name"]
+        matrix_distance_item["from"] = from_district_name
+        matrix_distance_item["to"] = to_district_name
         matrix_distance_item["distances"] = []
         matrix_distance.append(matrix_distance_item)
-        for cell1 in district_1["cells"]:
-            for cell2 in district_10["cells"]:
-                center1 = (cell1["center_lat"], cell1["center_lon"])
-                center2 = (cell2["center_lat"], cell2["center_lon"])
+        for cell1 in district_from["cells"]:
+            for cell2 in district_to["cells"]:
+                center1 = (cell1["center"][1], cell1["center"][0])
+                center2 = (cell2["center"][1], cell2["center"][0])
                 distance = get_driving_distance_specific_points(center1, center2)
                 matrix_distance_item["distances"].append({
                     "cell_from": cell1["cell_id"],
@@ -71,8 +73,9 @@ async def grid_distance(filename):
                     "distance_km": distance
                 })
                 print(f"Distance between cell {cell1['cell_id']} and cell {cell2['cell_id']}: {distance:.2f} km")
-                with open(filename, 'w') as f:
-                    json.dump(matrix_distance, f, indent=4) # 'indent=4' for pretty-printing
+                if save:
+                    with open(filename, 'w') as f:
+                        json.dump(matrix_distance, f, indent=4) # 'indent=4' for pretty-printing
                 await asyncio.sleep(2)
         
     except Exception as e:
@@ -81,4 +84,4 @@ async def grid_distance(filename):
 # Run the function
 # driving_distance = get_driving_distance_specific_points()
 # print(f"Driving distance between District 1 and District 2: {driving_distance:.2f} km")
-asyncio.run(grid_distance('./matrix_distance.json'))
+asyncio.run(grid_distance('District 10', 'District 7', './matrix_distance.json', save=False))
