@@ -2,6 +2,10 @@ import json
 
 def aggregate_data():
     try:
+        filename_probability = "./probability.json"
+        data_probability = []
+        with open(filename_probability, 'r') as file:
+            data_probability = json.load(file)
         filename_grid = "./grid.json"
         data_grid = []
         with open(filename_grid, 'r') as file:
@@ -51,6 +55,7 @@ def aggregate_data():
                             "pois_office": d1["pois_office"],
                             "pois_public_transport": d1["pois_public_transport"],
                         }
+                        break
 
                 for d2 in pois_to:
                     if d2["cell_id"] == distance_entry["cell_to"]:
@@ -63,6 +68,20 @@ def aggregate_data():
                             "pois_office": d2["pois_office"],
                             "pois_public_transport": d2["pois_public_transport"],
                         }
+                        break
+
+                for p in data_probability:
+                    if p["place_name"] == item["from"]:
+                        probability_from = p
+                        if distance_entry["distance_km"] == 0:
+                            prob_from = probability_from["0"]
+                        elif 0 < distance_entry["distance_km"] < 10:
+                            prob_from = probability_from["(0, 10)"]
+                        elif 10 <= distance_entry["distance_km"] < 100:
+                            prob_from = probability_from["[10, 100)"]
+                        else:
+                            prob_from = probability_from["100+"]
+                        break
 
                 aggregated_data.append({
                     "id": count,
@@ -85,6 +104,7 @@ def aggregate_data():
                     "pois_office_to": pois_to_cell["pois_office"],
                     "pois_public_transport_from": pois_from_cell["pois_public_transport"],
                     "pois_public_transport_to": pois_to_cell["pois_public_transport"],
+                    "probability_move": prob_from
                 })
         with open("./aggregated_data.json", 'w') as f:
             json.dump(aggregated_data, f, indent=4) # 'indent=4' for pretty-printing
