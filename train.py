@@ -56,13 +56,13 @@ class MigrationDataGenerator:
         return features_scaled, data['move_probability'].values
 
 # Generate data
-data_gen = MigrationDataGenerator(n_samples=10000)
-data = data_gen.generate_data()
+# data_gen = MigrationDataGenerator(n_samples=10000)
+# data = data_gen.generate_data()
 
-print("Data sample:")
-print(data.head())
-print(f"\nData shape: {data.shape}")
-print(f"Probability range: [{data['move_probability'].min():.3f}, {data['move_probability'].max():.3f}]")
+# print("Data sample:")
+# print(data.head())
+# print(f"\nData shape: {data.shape}")
+# print(f"Probability range: [{data['move_probability'].min():.3f}, {data['move_probability'].max():.3f}]")
 
 class MigrationPredictor(nn.Module):
     def __init__(self, input_dim=3, hidden_dims=[64, 32, 16], dropout_rate=0.2):
@@ -138,8 +138,71 @@ class MigrationTrainer:
         
         return train_losses, val_losses
     
+def run_complete_pipeline():
+    # Generate and prepare data
+    print("Generating data...")
+    data_gen = MigrationDataGenerator(n_samples=10000)
+    data = data_gen.generate_data()
+    
+    X, y = data_gen.prepare_features(data)
+    
+    # Split data
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42
+    )
+    X_train, X_val, y_train, y_val = train_test_split(
+        X_train, y_train, test_size=0.25, random_state=42
+    )
+    
+    # Convert to PyTorch tensors
+    X_train_tensor = torch.FloatTensor(X_train)
+    y_train_tensor = torch.FloatTensor(y_train)
+    X_val_tensor = torch.FloatTensor(X_val)
+    y_val_tensor = torch.FloatTensor(y_val)
+    X_test_tensor = torch.FloatTensor(X_test)
+    y_test_tensor = torch.FloatTensor(y_test)
+    
+    # Create data loaders
+    train_dataset = torch.utils.data.TensorDataset(X_train_tensor, y_train_tensor)
+    val_dataset = torch.utils.data.TensorDataset(X_val_tensor, y_val_tensor)
+    test_dataset = torch.utils.data.TensorDataset(X_test_tensor, y_test_tensor)
+    
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=32, shuffle=True)
+    val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=32, shuffle=False)
+    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=32, shuffle=False)
+    
+    # Initialize model and trainer
+    model = MigrationPredictor(input_dim=3, hidden_dims=[128, 64, 32, 16], dropout_rate=0.3)
+    trainer = MigrationTrainer(model, learning_rate=0.001)
+    
+    print(f"Model architecture:\n{model}")
+    print(f"Total parameters: {sum(p.numel() for p in model.parameters()):,}")
+    
+    # Train model
+    print("\nStarting training...")
+    train_losses, val_losses = trainer.train(train_loader, val_loader, epochs=20)
+    
+    # Evaluate model
+    model.eval()
+    with torch.no_grad():
+        test_predictions = model(X_test_tensor)
+        test_loss = trainer.criterion(test_predictions, y_test_tensor)
+        
+        # Calculate R-squared
+        ss_res = torch.sum((y_test_tensor - test_predictions) ** 2)
+        ss_tot = torch.sum((y_test_tensor - torch.mean(y_test_tensor)) ** 2)
+        r_squared = 1 - ss_res / ss_tot
+    
+    print(f"\nFinal Test Loss: {test_loss:.6f}")
+    print(f"R-squared: {r_squared:.4f}")
+    
+    return model, data_gen, train_losses, val_losses, test_predictions, y_test_tensor
+
+# Run the complete pipeline
+model, data_gen, train_losses, val_losses, test_pred, test_true = run_complete_pipeline()
+
 def plot_results(train_losses, val_losses, test_pred, test_true):
-    fig, axes = plt.subplots(2, 2, figsize=(15, 12))
+    fig, axes = plt.subplots(2, 2, figsize=(10, 8))
     
     # Plot training history
     axes[0, 0].plot(train_losses, label='Training Loss')
@@ -179,7 +242,7 @@ def plot_results(train_losses, val_losses, test_pred, test_true):
     plt.tight_layout()
     plt.show()
 
-plot_results(train_losses, val_losses, test_pred, test_true)
+# plot_results(train_losses, val_losses, test_pred, test_true)
 
 def predict_migration_probability(model, data_gen, population_a, population_b, distance):
     """
