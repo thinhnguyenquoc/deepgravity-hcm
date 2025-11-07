@@ -429,9 +429,6 @@ def run_enhanced_training_pipeline():
     
     return model, dataset, trainer, test_metrics, train_losses, val_losses
 
-# Run training
-model, dataset, trainer, test_metrics, train_losses, val_losses = run_enhanced_training_pipeline()
-
 def plot_enhanced_results(train_losses, val_losses, test_metrics, dataset):
     fig, axes = plt.subplots(2, 3, figsize=(10, 8))
     
@@ -501,8 +498,6 @@ def plot_enhanced_results(train_losses, val_losses, test_metrics, dataset):
     
     plt.tight_layout()
     plt.show()
-
-plot_enhanced_results(train_losses, val_losses, test_metrics, dataset)
 
 class EnhancedMigrationPredictor:
     def __init__(self, model, dataset):
@@ -669,4 +664,10 @@ def load_enhanced_model(dataset, filepath='enhanced_migration_predictor.pth'):
 
 # Example of loading the model
 # loaded_predictor = load_enhanced_model(dataset)
+
+# Run training
+model, dataset, trainer, test_metrics, train_losses, val_losses = run_enhanced_training_pipeline()
+# Show results
+plot_enhanced_results(train_losses, val_losses, test_metrics, dataset)
+# Example usage of predictor
 predictor_example_usage(model, dataset)
