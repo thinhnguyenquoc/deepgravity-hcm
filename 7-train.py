@@ -39,7 +39,8 @@ class EnhancedMigrationDataset(Dataset):
         with open(filename, 'r') as file:
             data_aggregate = json.load(file)
         # np.random.seed(42)
-        self.n_samples = len(data_aggregate)
+        data_train = data_aggregate[0:int(0.95*len(data_aggregate))]
+        self.n_samples = len(data_train)
         pop_a_list = []
         pop_b_list = []
         dist_list = []
@@ -56,7 +57,8 @@ class EnhancedMigrationDataset(Dataset):
         public_transport_a_list = []
         public_transport_b_list = []
         probability_list = []
-        for item in data_aggregate:
+
+        for item in data_train:
             pop_a_list.append(item["population_from"])
             pop_b_list.append(item["population_to"])
             dist_list.append(item["distance_km"])
@@ -502,187 +504,164 @@ def plot_enhanced_results(train_losses, val_losses, test_metrics, dataset):
 
 plot_enhanced_results(train_losses, val_losses, test_metrics, dataset)
 
-class EnhancedMigrationPredictor(nn.Module):
-    def __init__(self, input_dim=15, hidden_dims=[512, 256, 128, 64, 32], 
-                 dropout_rate=0.3, use_batch_norm=True):
-        super(EnhancedMigrationPredictor, self).__init__()
-        
-        self.input_dim = input_dim
-        self.hidden_dims = hidden_dims
-        
-        # Build hidden layers
-        layers = []
-        prev_dim = input_dim
-        
-        for i, hidden_dim in enumerate(hidden_dims):
-            layers.append(nn.Linear(prev_dim, hidden_dim))
-            
-            if use_batch_norm:
-                layers.append(nn.BatchNorm1d(hidden_dim))
-            
-            layers.append(nn.ReLU())
-            layers.append(nn.Dropout(dropout_rate))
-            prev_dim = hidden_dim
-        
-        self.feature_extractor = nn.Sequential(*layers)
-        
-        # Output layer
-        self.output_layer = nn.Sequential(
-            nn.Linear(prev_dim, 1),
-            nn.Sigmoid()  # Output between 0 and 1
-        )
-        
-        # Initialize weights
-        self._initialize_weights()
+class EnhancedMigrationPredictor:
+    def __init__(self, model, dataset):
+        self.model = model
+        self.dataset = dataset
+        self.feature_names = dataset.get_feature_names()
+        self.model.eval()
+        self.device = next(model.parameters()).device
     
-    def _initialize_weights(self):
-        """Initialize weights using appropriate methods"""
-        for module in self.modules():
-            if isinstance(module, nn.Linear):
-                nn.init.kaiming_uniform_(module.weight, nonlinearity='relu')
-                if module.bias is not None:
-                    nn.init.constant_(module.bias, 0)
-    
-    def forward(self, x):
-        features = self.feature_extractor(x)
-        output = self.output_layer(features)
-        return output.squeeze()
-    
-    def evaluate(self, data_loader, criterion=None):
-        """Evaluate the model on given data loader"""
-        if criterion is None:
-            criterion = nn.MSELoss()
-            
-        self.eval()
-        device = next(self.parameters()).device
+    def predict(self, population_a, population_b, distance, 
+                amenity_a, amenity_b, shop_a, shop_b,
+                tourism_a, tourism_b, leisure_a, leisure_b,
+                office_a, office_b, public_transport_a, public_transport_b):
+        """
+        Predict migration probability for given inputs
+        """
+        # Prepare input tensor
+        input_data = np.array([[
+            population_a, population_b, distance,
+            amenity_a, amenity_b, shop_a, shop_b,
+            tourism_a, tourism_b, leisure_a, leisure_b,
+            office_a, office_b, public_transport_a, public_transport_b
+        ]])
         
-        total_loss = 0.0
-        all_predictions = []
-        all_targets = []
+        input_tensor = torch.tensor(input_data, dtype=torch.float32)
+        
+        # Apply same preprocessing as training data
+        input_log = torch.log(input_tensor + 1)
+        input_scaled = self.dataset.scaler.transform(input_log.numpy())
+        input_final = torch.tensor(input_scaled, dtype=torch.float32).to(self.device)
         
         with torch.no_grad():
-            for batch_X, batch_y in data_loader:
-                batch_X, batch_y = batch_X.to(device), batch_y.to(device)
-                predictions = self(batch_X)
-                loss = criterion(predictions, batch_y)
-                
-                total_loss += loss.item()
-                all_predictions.append(predictions.cpu())
-                all_targets.append(batch_y.cpu())
+            probability = self.model(input_final).cpu().item()
         
-        # Concatenate all batches
-        all_predictions = torch.cat(all_predictions)
-        all_targets = torch.cat(all_targets)
-        
-        # Calculate additional metrics
-        mse = criterion(all_predictions, all_targets).item()
-        mae = nn.L1Loss()(all_predictions, all_targets).item()
-        rmse = np.sqrt(mse)
-        
-        # R-squared
-        ss_res = torch.sum((all_targets - all_predictions) ** 2)
-        ss_tot = torch.sum((all_targets - torch.mean(all_targets)) ** 2)
-        r_squared = 1 - ss_res / ss_tot
-        
-        # Mean Absolute Percentage Error
-        mape = torch.mean(torch.abs((all_targets - all_predictions) / (all_targets + 1e-8))) * 100
-        
-        metrics = {
-            'loss': total_loss / len(data_loader),
-            'mse': mse,
-            'mae': mae,
-            'rmse': rmse,
-            'r_squared': r_squared.item(),
-            'mape': mape.item(),
-            'predictions': all_predictions.numpy(),
-            'targets': all_targets.numpy()
-        }
-        
-        return metrics
+        return probability
     
-    def get_feature_importance(self, data_loader, n_permutations=5):
-        """Calculate approximate feature importance using permutation"""
-        self.eval()
-        baseline_metrics = self.evaluate(data_loader)
-        baseline_mse = baseline_metrics['mse']
+    def predict_batch(self, data_array):
+        """
+        Predict for multiple samples at once
+        """
+        input_tensor = torch.tensor(data_array, dtype=torch.float32)
+        input_log = torch.log(input_tensor + 1)
+        input_scaled = self.dataset.scaler.transform(input_log.numpy())
+        input_final = torch.tensor(input_scaled, dtype=torch.float32).to(self.device)
         
-        feature_importance = np.zeros(self.input_dim)
+        with torch.no_grad():
+            probabilities = self.model(input_final).cpu().numpy()
         
-        for feature_idx in range(self.input_dim):
-            permutation_mses = []
-            
-            for _ in range(n_permutations):
-                # Create modified data with shuffled feature
-                modified_features = []
-                modified_targets = []
-                
-                for batch_X, batch_y in data_loader:
-                    # Shuffle the specific feature
-                    shuffled_X = batch_X.clone()
-                    shuffle_idx = torch.randperm(shuffled_X.size(0))
-                    shuffled_X[:, feature_idx] = shuffled_X[shuffle_idx, feature_idx]
-                    
-                    modified_features.append(shuffled_X)
-                    modified_targets.append(batch_y)
-                
-                # Calculate MSE with shuffled feature
-                all_preds = []
-                all_targets = []
-                
-                with torch.no_grad():
-                    for batch_X, batch_y in zip(modified_features, modified_targets):
-                        preds = self(batch_X)
-                        all_preds.append(preds)
-                        all_targets.append(batch_y)
-                
-                all_preds = torch.cat(all_preds)
-                all_targets = torch.cat(all_targets)
-                shuffled_mse = nn.MSELoss()(all_preds, all_targets).item()
-                permutation_mses.append(shuffled_mse)
-            
-            # Average importance over permutations
-            avg_shuffled_mse = np.mean(permutation_mses)
-            importance = avg_shuffled_mse - baseline_mse
-            feature_importance[feature_idx] = importance
+        return probabilities
+    
+    def analyze_feature_importance(self, n_samples=500):
+        """Analyze feature importance using permutation"""
+        print("Calculating feature importance...")
         
-        return feature_importance
+        # Create a small data loader for importance calculation
+        indices = np.random.choice(len(self.dataset), n_samples, replace=False)
+        importance_loader = DataLoader(
+            torch.utils.data.Subset(self.dataset, indices), 
+            batch_size=64, shuffle=False
+        )
+        
+        importance_scores = self.model.get_feature_importance(importance_loader)
+        
+        # Plot feature importance
+        plt.figure(figsize=(12, 8))
+        indices_sorted = np.argsort(importance_scores)[::-1]
+        sorted_features = [self.feature_names[i] for i in indices_sorted]
+        sorted_scores = importance_scores[indices_sorted]
+        
+        bars = plt.barh(range(len(sorted_features)), sorted_scores)
+        plt.yticks(range(len(sorted_features)), sorted_features)
+        plt.xlabel('Feature Importance (Increase in MSE)')
+        plt.title('Feature Importance Analysis')
+        plt.grid(True, alpha=0.3, axis='x')
+        
+        # Add value labels on bars
+        for bar, score in zip(bars, sorted_scores):
+            if score > 0:
+                plt.text(bar.get_width() + 0.0001, bar.get_y() + bar.get_height()/2,
+                        f'{score:.4f}', ha='left', va='center', fontsize=8)
+        
+        plt.tight_layout()
+        plt.show()
+        
+        return dict(zip(self.feature_names, importance_scores))
+
+    def evaluate_model(self, data_loader):
+        """Evaluate the model using the built-in evaluate method"""
+        return self.model.evaluate(data_loader)
     
 # Create predictor
 predictor = EnhancedMigrationPredictor(model, dataset)
 
 # Example predictions
-print("Enhanced Migration Probability Predictions:")
+print("\nEnhanced Migration Probability Predictions:")
 print("=" * 90)
 
-examples = [
-    # Format: (pop_a, pop_b, dist, amenity_a, amenity_b, shop_a, shop_b, tourism_a, tourism_b, 
-    #          leisure_a, leisure_b, office_a, office_b, public_transport_a, public_transport_b)
-    (1000000, 800000, 50, 120, 100, 250, 200, 60, 50, 80, 70, 120, 100, 50, 40),
-    (500000, 300000, 200, 60, 40, 120, 80, 25, 20, 40, 30, 60, 40, 25, 15),
-    (50000, 30000, 500, 8, 5, 15, 10, 3, 2, 6, 4, 8, 5, 3, 2),
-    (100000, 100000, 1000, 15, 15, 30, 30, 8, 8, 12, 12, 15, 15, 6, 6),
-    (5000000, 5000000, 10, 600, 600, 1200, 1200, 250, 250, 400, 400, 600, 600, 200, 200),
-]
+# examples = [
+#     (1000000, 800000, 50, 120, 100, 250, 200, 60, 50, 80, 70, 120, 100, 50, 40),
+#     (500000, 300000, 200, 60, 40, 120, 80, 25, 20, 40, 30, 60, 40, 25, 15),
+# ]
 
-feature_labels = [
-    "Pop A", "Pop B", "Dist", "Amt A", "Amt B", "Shop A", "Shop B", 
-    "Tour A", "Tour B", "Leis A", "Leis B", "Off A", "Off B", "PT A", "PT B"
-]
+examples = []
 
-header = " | ".join(f"{label:>8}" for label in feature_labels) + " | Probability"
-print(header)
-print("-" * len(header))
+filename = "./aggregated_data.json"
+with open(filename, 'r') as file:
+    data_aggregate = json.load(file)
+data_examples = data_aggregate[int(0.95*len(data_aggregate)) + 1: len(data_aggregate) - 1]
 
+for item in data_examples:
+    examples.append((
+        item["population_from"],
+        item["population_to"],
+        item["distance_km"],
+        item["pois_amenity_from"],
+        item["pois_amenity_to"],
+        item["pois_shop_from"],
+        item["pois_shop_to"],
+        item["pois_tourism_from"],
+        item["pois_tourism_to"],
+        item["pois_leisure_from"],
+        item["pois_leisure_to"],
+        item["pois_office_from"],
+        item["pois_office_to"],
+        item["pois_public_transport_from"],
+        item["pois_public_transport_to"]
+    ))
+  
 for example in examples:
     prob = predictor.predict(*example)
-    values = " | ".join(f"{val:8,d}" if i < 3 else f"{val:8,d}" for i, val in enumerate(example))
-    print(f"{values} | {prob:>11.4f}")
+    print(f"Population A: {example[0]:,}, Population B: {example[1]:,}, "
+            f"Distance: {example[2]} -> Probability: {prob:.4f}")
 
-# Analyze feature importance
-feature_importance = predictor.analyze_feature_importance(n_samples=500)
-print("\nTop 5 Most Important Features:")
-for feature, importance in sorted(feature_importance.items(), key=lambda x: x[1], reverse=True)[:5]:
-    print(f"  {feature}: {importance:.6f}")
+# Plot training results
+plt.figure(figsize=(12, 4))
+
+plt.subplot(1, 2, 1)
+plt.plot(train_losses, label='Training Loss')
+plt.plot(val_losses, label='Validation Loss')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.legend()
+plt.title('Training History')
+plt.yscale('log')
+
+plt.subplot(1, 2, 2)
+predictions = test_metrics['predictions']
+targets = test_metrics['targets']
+plt.scatter(targets, predictions, alpha=0.5)
+min_val = min(targets.min(), predictions.min())
+max_val = max(targets.max(), predictions.max())
+plt.plot([min_val, max_val], [min_val, max_val], 'r--')
+plt.xlabel('Actual')
+plt.ylabel('Predicted')
+plt.title(f'Test Set Predictions (R² = {test_metrics["r_squared"]:.3f})')
+
+plt.tight_layout()
+plt.show()
+
 
 def save_enhanced_model(model, dataset, filepath='enhanced_migration_predictor.pth'):
     """Save the trained model and preprocessing parameters"""
@@ -694,32 +673,32 @@ def save_enhanced_model(model, dataset, filepath='enhanced_migration_predictor.p
         'model_config': {
             'input_dim': 15,
             'hidden_dims': [512, 256, 128, 64, 32],
-            'dropout_rate': 0.2,
+            'dropout_rate': 0.3,
             'use_batch_norm': True
         }
     }, filepath)
     print(f"Enhanced model saved to {filepath}")
 
-def load_enhanced_model(filepath='enhanced_migration_predictor.pth'):
-    """Load the trained model and preprocessing parameters"""
-    checkpoint = torch.load(filepath, map_location='cpu')
+# def load_enhanced_model(filepath='enhanced_migration_predictor.pth'):
+#     """Load the trained model and preprocessing parameters"""
+#     checkpoint = torch.load(filepath, map_location='cpu')
     
-    # Create model architecture
-    model = EnhancedMigrationPredictor(**checkpoint['model_config'])
-    model.load_state_dict(checkpoint['model_state_dict'])
+#     # Create model architecture
+#     model = EnhancedMigrationPredictor(**checkpoint['model_config'])
+#     model.load_state_dict(checkpoint['model_state_dict'])
     
-    # Create dummy dataset for scaler and feature names
-    dataset = EnhancedMigrationDataset(n_samples=1)
-    dataset.scaler.mean_ = checkpoint['scaler_mean']
-    dataset.scaler.scale_ = checkpoint['scaler_scale']
+#     # Create dummy dataset for scaler and feature names
+#     dataset = EnhancedMigrationDataset(n_samples=1)
+#     dataset.scaler.mean_ = checkpoint['scaler_mean']
+#     dataset.scaler.scale_ = checkpoint['scaler_scale']
     
-    predictor = EnhancedMigrationPredictor(model, dataset)
-    print(f"Enhanced model loaded from {filepath}")
+#     predictor = EnhancedMigrationPredictor(model, dataset)
+#     print(f"Enhanced model loaded from {filepath}")
     
-    return predictor
+#     return predictor
 
 # Save the model
 save_enhanced_model(model, dataset)
 
-# Example of loading the model
-# loaded_predictor = load_enhanced_model()
+# # Example of loading the model
+# # loaded_predictor = load_enhanced_model()
