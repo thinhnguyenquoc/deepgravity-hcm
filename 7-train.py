@@ -438,7 +438,7 @@ def run_enhanced_training_pipeline():
     return model, dataset, trainer, test_metrics, train_losses, val_losses
 
 def plot_enhanced_results(train_losses, val_losses, test_metrics, dataset):
-    fig, axes = plt.subplots(2, 3, figsize=(10, 8))
+    fig, axes = plt.subplots(2, 3, figsize=(14, 8))
     
     # Plot training history
     axes[0, 0].plot(train_losses, label='Training Loss', alpha=0.7, linewidth=2)
