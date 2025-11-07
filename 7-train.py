@@ -592,76 +592,45 @@ class EnhancedMigrationPredictor:
     def evaluate_model(self, data_loader):
         """Evaluate the model using the built-in evaluate method"""
         return self.model.evaluate(data_loader)
+
+def predictor_example_usage(model, dataset):
+    # Create predictor
+    predictor = EnhancedMigrationPredictor(model, dataset)
+
+    # Example predictions
+    print("\nEnhanced Migration Probability Predictions:")
+    print("=" * 90)
+
+    examples = []
+
+    filename = "./aggregated_data.json"
+    with open(filename, 'r') as file:
+        data_aggregate = json.load(file)
+    data_examples = data_aggregate[int(0.95*len(data_aggregate)) + 1: len(data_aggregate) - 1]
+
+    for item in data_examples:
+        examples.append((
+            item["population_from"],
+            item["population_to"],
+            item["distance_km"],
+            item["pois_amenity_from"],
+            item["pois_amenity_to"],
+            item["pois_shop_from"],
+            item["pois_shop_to"],
+            item["pois_tourism_from"],
+            item["pois_tourism_to"],
+            item["pois_leisure_from"],
+            item["pois_leisure_to"],
+            item["pois_office_from"],
+            item["pois_office_to"],
+            item["pois_public_transport_from"],
+            item["pois_public_transport_to"]
+        ))
     
-# Create predictor
-predictor = EnhancedMigrationPredictor(model, dataset)
-
-# Example predictions
-print("\nEnhanced Migration Probability Predictions:")
-print("=" * 90)
-
-# examples = [
-#     (1000000, 800000, 50, 120, 100, 250, 200, 60, 50, 80, 70, 120, 100, 50, 40),
-#     (500000, 300000, 200, 60, 40, 120, 80, 25, 20, 40, 30, 60, 40, 25, 15),
-# ]
-
-examples = []
-
-filename = "./aggregated_data.json"
-with open(filename, 'r') as file:
-    data_aggregate = json.load(file)
-data_examples = data_aggregate[int(0.95*len(data_aggregate)) + 1: len(data_aggregate) - 1]
-
-for item in data_examples:
-    examples.append((
-        item["population_from"],
-        item["population_to"],
-        item["distance_km"],
-        item["pois_amenity_from"],
-        item["pois_amenity_to"],
-        item["pois_shop_from"],
-        item["pois_shop_to"],
-        item["pois_tourism_from"],
-        item["pois_tourism_to"],
-        item["pois_leisure_from"],
-        item["pois_leisure_to"],
-        item["pois_office_from"],
-        item["pois_office_to"],
-        item["pois_public_transport_from"],
-        item["pois_public_transport_to"]
-    ))
-  
-for example in examples:
-    prob = predictor.predict(*example)
-    print(f"Population A: {example[0]:,}, Population B: {example[1]:,}, "
-            f"Distance: {example[2]} -> Probability: {prob:.4f}")
-
-# Plot training results
-plt.figure(figsize=(12, 4))
-
-plt.subplot(1, 2, 1)
-plt.plot(train_losses, label='Training Loss')
-plt.plot(val_losses, label='Validation Loss')
-plt.xlabel('Epoch')
-plt.ylabel('Loss')
-plt.legend()
-plt.title('Training History')
-plt.yscale('log')
-
-plt.subplot(1, 2, 2)
-predictions = test_metrics['predictions']
-targets = test_metrics['targets']
-plt.scatter(targets, predictions, alpha=0.5)
-min_val = min(targets.min(), predictions.min())
-max_val = max(targets.max(), predictions.max())
-plt.plot([min_val, max_val], [min_val, max_val], 'r--')
-plt.xlabel('Actual')
-plt.ylabel('Predicted')
-plt.title(f'Test Set Predictions (R² = {test_metrics["r_squared"]:.3f})')
-
-plt.tight_layout()
-plt.show()
-
+    for example in examples:
+        prob = predictor.predict(*example)
+        print(f"Population A: {example[0]:,}, Population B: {example[1]:,}, "
+                f"Distance: {example[2]} -> Probability: {prob:.4f}")
 
 def save_enhanced_model(model, dataset, filepath='enhanced_migration_predictor.pth'):
     """Save the trained model and preprocessing parameters"""
@@ -679,26 +648,25 @@ def save_enhanced_model(model, dataset, filepath='enhanced_migration_predictor.p
     }, filepath)
     print(f"Enhanced model saved to {filepath}")
 
-# def load_enhanced_model(filepath='enhanced_migration_predictor.pth'):
-#     """Load the trained model and preprocessing parameters"""
-#     checkpoint = torch.load(filepath, map_location='cpu')
+def load_enhanced_model(dataset, filepath='enhanced_migration_predictor.pth'):
+    """Load the trained model and preprocessing parameters"""
+    checkpoint = torch.load(filepath, map_location='cpu', weights_only=True)
     
-#     # Create model architecture
-#     model = EnhancedMigrationPredictor(**checkpoint['model_config'])
-#     model.load_state_dict(checkpoint['model_state_dict'])
+    # Create model architecture
+    model = EnhancedMigrationPredictor(**checkpoint['model_config'])
+    model.load_state_dict(checkpoint['model_state_dict'])
     
-#     # Create dummy dataset for scaler and feature names
-#     dataset = EnhancedMigrationDataset(n_samples=1)
-#     dataset.scaler.mean_ = checkpoint['scaler_mean']
-#     dataset.scaler.scale_ = checkpoint['scaler_scale']
+    dataset.scaler.mean_ = checkpoint['scaler_mean']
+    dataset.scaler.scale_ = checkpoint['scaler_scale']
     
-#     predictor = EnhancedMigrationPredictor(model, dataset)
-#     print(f"Enhanced model loaded from {filepath}")
+    predictor = EnhancedMigrationPredictor(model, dataset)
+    print(f"Enhanced model loaded from {filepath}")
     
-#     return predictor
+    return predictor
 
 # Save the model
-save_enhanced_model(model, dataset)
+# save_enhanced_model(model, dataset)
 
-# # Example of loading the model
-# # loaded_predictor = load_enhanced_model()
+# Example of loading the model
+# loaded_predictor = load_enhanced_model(dataset)
+predictor_example_usage(model, dataset)
