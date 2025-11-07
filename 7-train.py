@@ -1,3 +1,4 @@
+import json
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -21,8 +22,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # print(f"Using device: {device}")
 
 class EnhancedMigrationDataset(Dataset):
-    def __init__(self, n_samples=20000):
-        self.n_samples = n_samples
+    def __init__(self):
         self.feature_names = [
             'population_a', 'population_b', 'distance', 
             'amenity_a', 'amenity_b', 'shop_a', 'shop_b',
@@ -35,32 +35,60 @@ class EnhancedMigrationDataset(Dataset):
     
     def _generate_data(self):
         """Generate synthetic migration data with urban features"""
-        np.random.seed(42)
-        
-        # Basic features (log-normal distributions)
-        pop_a = np.random.lognormal(12, 1, self.n_samples)  # Population A
-        pop_b = np.random.lognormal(12, 1, self.n_samples)  # Population B
-        distance = np.random.lognormal(6, 1, self.n_samples)  # Distance in km
-        
-        # Urban amenities (correlated with population)
-        # Normalized per 1000 people
-        amenity_a = np.random.poisson(pop_a / 10000) + 1
-        amenity_b = np.random.poisson(pop_b / 10000) + 1
-        
-        shop_a = np.random.poisson(pop_a / 5000) + 1
-        shop_b = np.random.poisson(pop_b / 5000) + 1
-        
-        tourism_a = np.random.poisson(pop_a / 20000) + 1
-        tourism_b = np.random.poisson(pop_b / 20000) + 1
-        
-        leisure_a = np.random.poisson(pop_a / 15000) + 1
-        leisure_b = np.random.poisson(pop_b / 15000) + 1
-        
-        office_a = np.random.poisson(pop_a / 10000) + 1
-        office_b = np.random.poisson(pop_b / 10000) + 1
-        
-        public_transport_a = np.random.poisson(pop_a / 25000) + 1
-        public_transport_b = np.random.poisson(pop_b / 25000) + 1
+        filename = "./aggregated_data.json"
+        with open(filename, 'r') as file:
+            data_aggregate = json.load(file)
+        # np.random.seed(42)
+        self.n_samples = len(data_aggregate)
+        pop_a_list = []
+        pop_b_list = []
+        dist_list = []
+        amenity_a_list = []
+        amenity_b_list = []
+        shop_a_list = []
+        shop_b_list = []
+        tourism_a_list = []
+        tourism_b_list = []
+        leisure_a_list = []
+        leisure_b_list = []
+        office_a_list = []
+        office_b_list = []
+        public_transport_a_list = []
+        public_transport_b_list = []
+        probability_list = []
+        for item in data_aggregate:
+            pop_a_list.append(item["population_from"])
+            pop_b_list.append(item["population_to"])
+            dist_list.append(item["distance_km"])
+            amenity_a_list.append(item["pois_amenity_from"])
+            amenity_b_list.append(item["pois_amenity_to"])
+            shop_a_list.append(item["pois_shop_from"])
+            shop_b_list.append(item["pois_shop_to"])
+            tourism_a_list.append(item["pois_tourism_from"])
+            tourism_b_list.append(item["pois_tourism_to"])
+            leisure_a_list.append(item["pois_leisure_from"])
+            leisure_b_list.append(item["pois_leisure_to"])
+            office_a_list.append(item["pois_office_from"])
+            office_b_list.append(item["pois_office_to"])
+            public_transport_a_list.append(item["pois_public_transport_from"])
+            public_transport_b_list.append(item["pois_public_transport_to"])
+            probability_list.append(item["probability_move"])
+
+        pop_a = np.array(pop_a_list)
+        pop_b = np.array(pop_b_list)
+        distance = np.array(dist_list)
+        amenity_a = np.array(amenity_a_list)
+        amenity_b = np.array(amenity_b_list)
+        shop_a = np.array(shop_a_list)
+        shop_b = np.array(shop_b_list)
+        tourism_a = np.array(tourism_a_list)
+        tourism_b = np.array(tourism_b_list)
+        leisure_a = np.array(leisure_a_list)
+        leisure_b = np.array(leisure_b_list)
+        office_a = np.array(office_a_list)
+        office_b = np.array(office_b_list)
+        public_transport_a = np.array(public_transport_a_list)
+        public_transport_b = np.array(public_transport_b_list)
         
         # Create feature matrix
         features = np.column_stack([
@@ -70,36 +98,8 @@ class EnhancedMigrationDataset(Dataset):
             office_a, office_b, public_transport_a, public_transport_b
         ])
         
-        # Enhanced gravity model with urban features
-        # Base gravity model
-        gravity_base = (pop_a * pop_b) / (distance**1.5 + 100)
         
-        # Urban amenities factor (weighted sum)
-        amenity_factor = (
-            0.3 * (amenity_a + amenity_b) +
-            0.25 * (shop_a + shop_b) +
-            0.15 * (tourism_a + tourism_b) +
-            0.1 * (leisure_a + leisure_b) +
-            0.1 * (office_a + office_b) +
-            0.1 * (public_transport_a + public_transport_b)
-        ) / distance
-        
-        # Interaction effects
-        urban_quality = (
-            (amenity_a + shop_a + tourism_a + leisure_a) / pop_a * 10000 +
-            (amenity_b + shop_b + tourism_b + leisure_b) / pop_b * 10000
-        )
-        
-        # Combine factors
-        raw_probability = (
-            np.log(gravity_base + 0.1) +
-            0.2 * np.log(amenity_factor + 1) +
-            0.15 * np.log(urban_quality + 1) +
-            np.random.normal(0, 0.1, self.n_samples)
-        )
-        
-        # Convert to probability
-        probability = 1 / (1 + np.exp(-raw_probability)) * 0.5  # Cap at 0.5
+        probability = np.array(probability_list)
         
         self.raw_features = torch.tensor(features, dtype=torch.float32)
         self.raw_targets = torch.tensor(probability, dtype=torch.float32)
@@ -382,7 +382,7 @@ def calculate_comprehensive_metrics(model, data_loader):
 def run_enhanced_training_pipeline():
     # Create enhanced dataset
     print("Creating enhanced dataset...")
-    dataset = EnhancedMigrationDataset(n_samples=25000)
+    dataset = EnhancedMigrationDataset()
     
     # Split data
     train_size = int(0.7 * len(dataset))
