@@ -625,10 +625,13 @@ def predictor_example_usage(model, dataset):
             item["pois_public_transport_to"]
         ))
     
+    index = 0
     for example in examples:
         prob = predictor.predict(*example)
-        print(f"Population A: {example[0]:,}, Population B: {example[1]:,}, "
-                f"Distance: {example[2]} -> Probability: {prob:.4f}")
+        print( f"From: {data_examples[index]['from_district']} - Cell: {data_examples[index]['cell_from']}, To: {data_examples[index]['to_district']} - Cell: {data_examples[index]['cell_to']}, "
+            f"Population A: {example[0]:,}, Population B: {example[1]:,}, "
+                f"Distance: {example[2]}, -> Probability: {prob:.4f}")
+        index += 1
 
 # Save the model
 # save_enhanced_model(model, dataset)
