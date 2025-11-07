@@ -56,14 +56,24 @@ async def grid_distance(from_district_name, to_district_name, filename, save=Fal
         
         with open(filename, 'r') as file:
             matrix_distance = json.load(file)
-        matrix_distance_item = {}
-        matrix_distance_item["title"] = district_from["place_name"] + " to " + district_to["place_name"]
-        matrix_distance_item["from"] = from_district_name
-        matrix_distance_item["to"] = to_district_name
-        matrix_distance_item["distances"] = []
-        matrix_distance.append(matrix_distance_item)
+        
+        matrix_distance_item_filter = list(filter(lambda x: x["title"] == district_from["place_name"] + " to " + district_to["place_name"],matrix_distance))
+        if len(matrix_distance_item_filter) > 0:
+            matrix_distance_item = matrix_distance_item_filter[0]
+        else:
+            matrix_distance_item = {}
+            matrix_distance_item["title"] = district_from["place_name"] + " to " + district_to["place_name"]
+            matrix_distance_item["from"] = from_district_name
+            matrix_distance_item["to"] = to_district_name
+            matrix_distance_item["distances"] = []
+            matrix_distance.append(matrix_distance_item)
         for cell1 in district_from["cells"]:
             for cell2 in district_to["cells"]:
+                existed_item = filter(lambda x: x["cell_from"] == cell1["cell_id"] and x["cell_to"] == cell2["cell_id"], matrix_distance_item["distances"])
+                if len(list(existed_item)) > 0:
+                    print(f"Distance between cell {cell1['cell_id']} and cell {cell2['cell_id']} already exists. Skipping...")
+                    continue
+
                 center1 = (cell1["center"][1], cell1["center"][0])
                 center2 = (cell2["center"][1], cell2["center"][0])
                 distance = get_driving_distance_specific_points(center1, center2)
@@ -84,4 +94,4 @@ async def grid_distance(from_district_name, to_district_name, filename, save=Fal
 # Run the function
 # driving_distance = get_driving_distance_specific_points()
 # print(f"Driving distance between District 1 and District 2: {driving_distance:.2f} km")
-asyncio.run(grid_distance('District 8', 'District 4', './matrix_distance.json', save=True))
+asyncio.run(grid_distance('District 8', 'District 6', './matrix_distance.json', save=True))

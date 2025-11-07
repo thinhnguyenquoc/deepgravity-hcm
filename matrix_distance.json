@@ -7843,6 +7843,363 @@
                 "cell_from": 11,
                 "cell_to": 4,
                 "distance_km": 10.651491880652738
+            },
+            {
+                "cell_from": 12,
+                "cell_to": 0,
+                "distance_km": 11.419965912144459
+            },
+            {
+                "cell_from": 12,
+                "cell_to": 1,
+                "distance_km": 12.471212536794551
+            },
+            {
+                "cell_from": 12,
+                "cell_to": 2,
+                "distance_km": 10.444471334711126
+            },
+            {
+                "cell_from": 12,
+                "cell_to": 3,
+                "distance_km": 11.36784887330915
+            },
+            {
+                "cell_from": 12,
+                "cell_to": 4,
+                "distance_km": 12.133195659973453
+            },
+            {
+                "cell_from": 13,
+                "cell_to": 0,
+                "distance_km": 12.128332663567265
+            },
+            {
+                "cell_from": 13,
+                "cell_to": 1,
+                "distance_km": 13.17957928821736
+            },
+            {
+                "cell_from": 13,
+                "cell_to": 2,
+                "distance_km": 11.152838086133933
+            },
+            {
+                "cell_from": 13,
+                "cell_to": 3,
+                "distance_km": 12.076215624731956
+            },
+            {
+                "cell_from": 13,
+                "cell_to": 4,
+                "distance_km": 12.84156241139626
+            },
+            {
+                "cell_from": 14,
+                "cell_to": 0,
+                "distance_km": 10.664014450831003
+            },
+            {
+                "cell_from": 14,
+                "cell_to": 1,
+                "distance_km": 11.77537067617122
+            },
+            {
+                "cell_from": 14,
+                "cell_to": 2,
+                "distance_km": 9.68851987339767
+            },
+            {
+                "cell_from": 14,
+                "cell_to": 3,
+                "distance_km": 10.611897411995693
+            },
+            {
+                "cell_from": 14,
+                "cell_to": 4,
+                "distance_km": 11.377244198659996
+            },
+            {
+                "cell_from": 15,
+                "cell_to": 0,
+                "distance_km": 13.449326989014583
+            },
+            {
+                "cell_from": 15,
+                "cell_to": 1,
+                "distance_km": 13.449326989014583
+            },
+            {
+                "cell_from": 15,
+                "cell_to": 2,
+                "distance_km": 12.473832411581252
+            },
+            {
+                "cell_from": 15,
+                "cell_to": 3,
+                "distance_km": 13.280063503115091
+            },
+            {
+                "cell_from": 15,
+                "cell_to": 4,
+                "distance_km": 13.727098066358856
+            },
+            {
+                "cell_from": 16,
+                "cell_to": 0,
+                "distance_km": 12.434154361449007
+            },
+            {
+                "cell_from": 16,
+                "cell_to": 1,
+                "distance_km": 13.485400986099101
+            },
+            {
+                "cell_from": 16,
+                "cell_to": 2,
+                "distance_km": 11.458659784015676
+            },
+            {
+                "cell_from": 16,
+                "cell_to": 3,
+                "distance_km": 12.382037322613698
+            },
+            {
+                "cell_from": 16,
+                "cell_to": 4,
+                "distance_km": 13.147384109278002
+            },
+            {
+                "cell_from": 17,
+                "cell_to": 0,
+                "distance_km": 11.66092130314641
+            },
+            {
+                "cell_from": 17,
+                "cell_to": 1,
+                "distance_km": 12.772277528486624
+            },
+            {
+                "cell_from": 17,
+                "cell_to": 2,
+                "distance_km": 10.685426725713079
+            },
+            {
+                "cell_from": 17,
+                "cell_to": 3,
+                "distance_km": 11.6088042643111
+            },
+            {
+                "cell_from": 17,
+                "cell_to": 4,
+                "distance_km": 12.374151050975405
+            },
+            {
+                "cell_from": 18,
+                "cell_to": 0,
+                "distance_km": 13.588267195101224
+            },
+            {
+                "cell_from": 18,
+                "cell_to": 1,
+                "distance_km": 13.588267195101224
+            },
+            {
+                "cell_from": 18,
+                "cell_to": 2,
+                "distance_km": 13.590343493315098
+            },
+            {
+                "cell_from": 18,
+                "cell_to": 3,
+                "distance_km": 13.648492374834673
+            },
+            {
+                "cell_from": 18,
+                "cell_to": 4,
+                "distance_km": 13.648492374834673
+            },
+            {
+                "cell_from": 19,
+                "cell_to": 0,
+                "distance_km": 16.790700177384657
+            },
+            {
+                "cell_from": 19,
+                "cell_to": 1,
+                "distance_km": 16.790700177384657
+            },
+            {
+                "cell_from": 19,
+                "cell_to": 2,
+                "distance_km": 15.815205599951323
+            },
+            {
+                "cell_from": 19,
+                "cell_to": 3,
+                "distance_km": 16.621436691485165
+            },
+            {
+                "cell_from": 19,
+                "cell_to": 4,
+                "distance_km": 16.224946560599353
+            },
+            {
+                "cell_from": 20,
+                "cell_to": 0,
+                "distance_km": 13.302563011451353
+            },
+            {
+                "cell_from": 20,
+                "cell_to": 1,
+                "distance_km": 14.41391923679157
+            },
+            {
+                "cell_from": 20,
+                "cell_to": 2,
+                "distance_km": 12.327068434018022
+            },
+            {
+                "cell_from": 20,
+                "cell_to": 3,
+                "distance_km": 13.250445972616044
+            },
+            {
+                "cell_from": 20,
+                "cell_to": 4,
+                "distance_km": 14.015792759280348
+            },
+            {
+                "cell_from": 21,
+                "cell_to": 0,
+                "distance_km": 12.820749320731432
+            },
+            {
+                "cell_from": 21,
+                "cell_to": 1,
+                "distance_km": 13.720086802111835
+            },
+            {
+                "cell_from": 21,
+                "cell_to": 2,
+                "distance_km": 11.8452547432981
+            },
+            {
+                "cell_from": 21,
+                "cell_to": 3,
+                "distance_km": 12.76863228189612
+            },
+            {
+                "cell_from": 21,
+                "cell_to": 4,
+                "distance_km": 13.533979068560425
+            },
+            {
+                "cell_from": 22,
+                "cell_to": 0,
+                "distance_km": 16.125764713230236
+            },
+            {
+                "cell_from": 22,
+                "cell_to": 1,
+                "distance_km": 16.125764713230236
+            },
+            {
+                "cell_from": 22,
+                "cell_to": 2,
+                "distance_km": 16.12784101144411
+            },
+            {
+                "cell_from": 22,
+                "cell_to": 3,
+                "distance_km": 16.185989892963686
+            },
+            {
+                "cell_from": 22,
+                "cell_to": 4,
+                "distance_km": 16.185989892963686
+            },
+            {
+                "cell_from": 23,
+                "cell_to": 0,
+                "distance_km": 15.403161216657042
+            },
+            {
+                "cell_from": 23,
+                "cell_to": 1,
+                "distance_km": 15.403161216657042
+            },
+            {
+                "cell_from": 23,
+                "cell_to": 2,
+                "distance_km": 14.427666639223709
+            },
+            {
+                "cell_from": 23,
+                "cell_to": 3,
+                "distance_km": 15.233897730757548
+            }
+        ]
+    },
+    {
+        "title": "District 8 to District 6",
+        "from": "District 8",
+        "to": "District 6",
+        "distances": [
+            {
+                "cell_from": 0,
+                "cell_to": 0,
+                "distance_km": 5.082393014411743
+            },
+            {
+                "cell_from": 0,
+                "cell_to": 1,
+                "distance_km": 4.644383068507524
+            },
+            {
+                "cell_from": 0,
+                "cell_to": 2,
+                "distance_km": 2.967287272853927
+            },
+            {
+                "cell_from": 0,
+                "cell_to": 3,
+                "distance_km": 4.790620415013996
+            },
+            {
+                "cell_from": 0,
+                "cell_to": 4,
+                "distance_km": 4.07314998741502
+            },
+            {
+                "cell_from": 0,
+                "cell_to": 5,
+                "distance_km": 3.204993672688968
+            },
+            {
+                "cell_from": 0,
+                "cell_to": 6,
+                "distance_km": 2.0164047949154087
+            },
+            {
+                "cell_from": 0,
+                "cell_to": 7,
+                "distance_km": 5.319957348903422
+            },
+            {
+                "cell_from": 0,
+                "cell_to": 8,
+                "distance_km": 4.510131512360841
+            },
+            {
+                "cell_from": 1,
+                "cell_to": 0,
+                "distance_km": 5.964103682953043
+            },
+            {
+                "cell_from": 1,
+                "cell_to": 1,
+                "distance_km": 5.526093737048823
             }
         ]
     }
