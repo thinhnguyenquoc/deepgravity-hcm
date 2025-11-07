@@ -123,8 +123,8 @@ def extract_hcmc_population(district_name, raster_path, hcmc_boundary_path=None,
     return hcmc_population
 
 # Extract HCMC population
-district_name = "District 8"
-hcmc_pop = extract_hcmc_population(district_name, "./data/vnm_ppp_2020_1km_Aggregated.tif",'./shapefile/district_8_hcmc.shp', is_save=True)
+district_name = "District 12"
+hcmc_pop = extract_hcmc_population(district_name, "./data/vnm_ppp_2020_1km_Aggregated.tif",'./shapefile/district_12_hcmc.shp', is_save=False)
 
 # Plot HCMC population
 plt.figure(figsize=(8, 6))
