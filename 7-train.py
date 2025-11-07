@@ -39,7 +39,8 @@ class EnhancedMigrationDataset(Dataset):
         filename = "./aggregated_data.json"
         with open(filename, 'r') as file:
             data_aggregate = json.load(file)
-        shuffle_data = random.shuffle(data_aggregate)
+        random.shuffle(data_aggregate)
+        shuffle_data = data_aggregate
         # np.random.seed(42)
         data_train = shuffle_data[0:int(0.95*len(data_aggregate))]
         data_examples = shuffle_data[int(0.95*len(data_aggregate)) + 1: len(data_aggregate) - 1]
@@ -411,7 +412,7 @@ def run_enhanced_training_pipeline():
     model = EnhancedMigrationPredictor(
         input_dim=15, 
         hidden_dims=[512, 256, 128, 64, 32], 
-        dropout_rate=0.2,
+        dropout_rate=0.3,
         use_batch_norm=True
     )
     model.to(device)
@@ -506,7 +507,7 @@ def plot_enhanced_results(train_losses, val_losses, test_metrics, dataset):
     plt.tight_layout()
     plt.show()
 
-class EnhancedMigrationPredictor:
+class EnhancedMigrationPredictorExample:
     def __init__(self, model, dataset):
         self.model = model
         self.dataset = dataset
@@ -597,7 +598,7 @@ class EnhancedMigrationPredictor:
 
 def predictor_example_usage(model, dataset):
     # Create predictor
-    predictor = EnhancedMigrationPredictor(model, dataset)
+    predictor = EnhancedMigrationPredictorExample(model, dataset)
 
     # Example predictions
     print("\nEnhanced Migration Probability Predictions:")
@@ -628,38 +629,6 @@ def predictor_example_usage(model, dataset):
         prob = predictor.predict(*example)
         print(f"Population A: {example[0]:,}, Population B: {example[1]:,}, "
                 f"Distance: {example[2]} -> Probability: {prob:.4f}")
-
-def save_enhanced_model(model, dataset, filepath='enhanced_migration_predictor.pth'):
-    """Save the trained model and preprocessing parameters"""
-    torch.save({
-        'model_state_dict': model.state_dict(),
-        'scaler_mean': dataset.scaler.mean_,
-        'scaler_scale': dataset.scaler.scale_,
-        'feature_names': dataset.get_feature_names(),
-        'model_config': {
-            'input_dim': 15,
-            'hidden_dims': [512, 256, 128, 64, 32],
-            'dropout_rate': 0.3,
-            'use_batch_norm': True
-        }
-    }, filepath)
-    print(f"Enhanced model saved to {filepath}")
-
-def load_enhanced_model(dataset, filepath='enhanced_migration_predictor.pth'):
-    """Load the trained model and preprocessing parameters"""
-    checkpoint = torch.load(filepath, map_location='cpu', weights_only=True)
-    
-    # Create model architecture
-    model = EnhancedMigrationPredictor(**checkpoint['model_config'])
-    model.load_state_dict(checkpoint['model_state_dict'])
-    
-    dataset.scaler.mean_ = checkpoint['scaler_mean']
-    dataset.scaler.scale_ = checkpoint['scaler_scale']
-    
-    predictor = EnhancedMigrationPredictor(model, dataset)
-    print(f"Enhanced model loaded from {filepath}")
-    
-    return predictor
 
 # Save the model
 # save_enhanced_model(model, dataset)
