@@ -84,4 +84,4 @@ async def grid_distance(from_district_name, to_district_name, filename, save=Fal
 # Run the function
 # driving_distance = get_driving_distance_specific_points()
 # print(f"Driving distance between District 1 and District 2: {driving_distance:.2f} km")
-asyncio.run(grid_distance('District 4', 'District 3', './matrix_distance.json', save=False))
+asyncio.run(grid_distance('District 6', 'District 1', './matrix_distance.json', save=True))

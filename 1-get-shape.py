@@ -28,7 +28,7 @@ def plot_district_boundary(district_name, is_save = False):
     gdf = gdf.to_crs('EPSG:4759')
 
     # Recalculate area in proper projection
-    gdf['area_sqkm'] = gdf.geometry.area / 10**6
+    # gdf['area_sqkm'] = gdf.geometry.area / 10**6
 
     # Export to Shapefile
     output_dir = f"./shapefile/{str.strip(district_name).replace(' ', '_')}_hcmc.shp"
@@ -40,4 +40,4 @@ def plot_district_boundary(district_name, is_save = False):
 
     return gdf
 
-plot_district_boundary("District 4", is_save=False)
+plot_district_boundary("District 6", is_save=True)

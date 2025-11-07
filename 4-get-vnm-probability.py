@@ -51,13 +51,15 @@ q10 = combined_data[(combined_data['gadm_name'] == 'Quận 10') & (combined_data
 # print("Q10:", q10["home_to_ping_distance_category"], q10["distance_category_ping_fraction"])
 q4 = combined_data[(combined_data['gadm_name'] == 'Quận 4') & (combined_data['ds'] == '2025-10-01')]
 # print("Q4:", q4["home_to_ping_distance_category"], q4["distance_category_ping_fraction"])
+q6 = combined_data[(combined_data['gadm_name'] == 'Quận 6') & (combined_data['ds'] == '2025-10-01')]
+# print("Q6:", q6["home_to_ping_distance_category"], q6["distance_category_ping_fraction"])
 
 def get_correct_index(place_name, q):
     ob = {
         "place_name": place_name
     }
     for i in range(len(q["home_to_ping_distance_category"])):
-        print(q[["home_to_ping_distance_category", "distance_category_ping_fraction"]].iat[i,1])
+        # print(q[["home_to_ping_distance_category", "distance_category_ping_fraction"]].iat[i,1])
         if q[["home_to_ping_distance_category", "distance_category_ping_fraction"]].iat[i,0] == "0":
             ob["0"]= float(q[["home_to_ping_distance_category", "distance_category_ping_fraction"]].iat[i,1])
         elif q[["home_to_ping_distance_category", "distance_category_ping_fraction"]].iat[i,0] == "(0, 10)":
@@ -77,6 +79,7 @@ probabilities.append(get_correct_index("District 4", q4))
 probabilities.append(get_correct_index("District 5", q5))
 probabilities.append(get_correct_index("District 7", q7))
 probabilities.append(get_correct_index("District 10", q10))
+probabilities.append(get_correct_index("District 6", q6))
 print(probabilities)
 
 with open("./probability.json", 'w') as f:

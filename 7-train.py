@@ -11,6 +11,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 import warnings
+import random
 warnings.filterwarnings('ignore')
 
 # Set random seeds for reproducibility
@@ -38,8 +39,10 @@ class EnhancedMigrationDataset(Dataset):
         filename = "./aggregated_data.json"
         with open(filename, 'r') as file:
             data_aggregate = json.load(file)
+        shuffle_data = random.shuffle(data_aggregate)
         # np.random.seed(42)
-        data_train = data_aggregate[0:int(0.95*len(data_aggregate))]
+        data_train = shuffle_data[0:int(0.95*len(data_aggregate))]
+        data_examples = shuffle_data[int(0.95*len(data_aggregate)) + 1: len(data_aggregate) - 1]
         self.n_samples = len(data_train)
         pop_a_list = []
         pop_b_list = []
@@ -105,6 +108,7 @@ class EnhancedMigrationDataset(Dataset):
         
         self.raw_features = torch.tensor(features, dtype=torch.float32)
         self.raw_targets = torch.tensor(probability, dtype=torch.float32)
+        self.data_examples = data_examples
     
     def _prepare_data(self):
         """Prepare and scale the data"""
@@ -128,6 +132,9 @@ class EnhancedMigrationDataset(Dataset):
     
     def get_raw_data(self):
         return self.raw_features, self.raw_targets
+
+    def get_data_examples(self):
+        return self.data_examples
 
 # Create dataset
 # dataset = EnhancedMigrationDataset(n_samples=10000)
@@ -596,13 +603,8 @@ def predictor_example_usage(model, dataset):
     print("\nEnhanced Migration Probability Predictions:")
     print("=" * 90)
 
+    data_examples = dataset.get_data_examples()
     examples = []
-
-    filename = "./aggregated_data.json"
-    with open(filename, 'r') as file:
-        data_aggregate = json.load(file)
-    data_examples = data_aggregate[int(0.95*len(data_aggregate)) + 1: len(data_aggregate) - 1]
-
     for item in data_examples:
         examples.append((
             item["population_from"],
