@@ -40,4 +40,4 @@ def plot_district_boundary(district_name, is_save = False):
 
     return gdf
 
-plot_district_boundary("District 6", is_save=True)
+plot_district_boundary("District 8", is_save=True)

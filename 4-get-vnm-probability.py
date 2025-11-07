@@ -53,6 +53,8 @@ q4 = combined_data[(combined_data['gadm_name'] == 'Quận 4') & (combined_data['
 # print("Q4:", q4["home_to_ping_distance_category"], q4["distance_category_ping_fraction"])
 q6 = combined_data[(combined_data['gadm_name'] == 'Quận 6') & (combined_data['ds'] == '2025-10-01')]
 # print("Q6:", q6["home_to_ping_distance_category"], q6["distance_category_ping_fraction"])
+q8 = combined_data[(combined_data['gadm_name'] == 'Quận 8') & (combined_data['ds'] == '2025-10-01')]
+# print("Q8:", q8["home_to_ping_distance_category"], q8["distance_category_ping_fraction"])
 
 def get_correct_index(place_name, q):
     ob = {
@@ -80,6 +82,7 @@ probabilities.append(get_correct_index("District 5", q5))
 probabilities.append(get_correct_index("District 7", q7))
 probabilities.append(get_correct_index("District 10", q10))
 probabilities.append(get_correct_index("District 6", q6))
+probabilities.append(get_correct_index("District 8", q8))
 print(probabilities)
 
 with open("./probability.json", 'w') as f:
