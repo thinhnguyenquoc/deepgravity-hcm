@@ -133,4 +133,4 @@ async def grid_poi(district_name, filename, save=False):
         return None
     
 # Run the function
-asyncio.run(grid_poi('District 10', './pois_district.json', save=True))
+asyncio.run(grid_poi('District 4', './pois_district.json', save=True))
